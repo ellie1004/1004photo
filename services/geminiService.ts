@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Modality } from "@google/genai";
 
 const API_KEY = process.env.API_KEY;
@@ -40,12 +39,24 @@ const generateSingleImage = async (base64Image: string, mimeType: string, prompt
         },
     });
 
-    for (const part of response.candidates[0].content.parts) {
+    const candidate = response.candidates?.[0];
+
+    if (!candidate || !candidate.content || !candidate.content.parts) {
+        console.error("API response was invalid or blocked.", response);
+        const blockReason = response.promptFeedback?.blockReason;
+        if (blockReason) {
+            throw new Error(`이미지 생성이 안전상의 이유로 차단되었습니다. (사유: ${blockReason}). 다른 이미지를 사용해 보세요.`);
+        }
+        throw new Error("서버로부터 유효하지 않은 응답을 받았습니다. 잠시 후 다시 시도해 주세요.");
+    }
+
+
+    for (const part of candidate.content.parts) {
         if (part.inlineData) {
             return part.inlineData.data;
         }
     }
-    throw new Error("No image data found in the API response.");
+    throw new Error("응답에서 이미지 데이터를 찾을 수 없습니다.");
 };
 
 

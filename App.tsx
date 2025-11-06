@@ -34,7 +34,11 @@ const App: React.FC = () => {
       setGeneratedImages(images);
     } catch (err) {
       console.error(err);
-      setError('이미지 생성에 실패했습니다. API 키를 확인하고 다시 시도해 주세요.');
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('알 수 없는 오류가 발생했습니다. 다시 시도해 주세요.');
+      }
     } finally {
       setIsLoading(false);
     }
